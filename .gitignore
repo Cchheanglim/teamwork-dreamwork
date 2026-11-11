@@ -1,0 +1,9 @@
+# Antigravity worker logs, conversation ids and queued messages (per project, local only)
+.agy/
+# Team board used while working on this repo
+TASKS.md
+
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store

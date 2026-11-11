@@ -1,0 +1,4 @@
+# Keep LF so bash/python scripts work in WSL and Linux even when Windows git converts to CRLF.
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
