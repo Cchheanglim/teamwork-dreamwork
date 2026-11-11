@@ -41,7 +41,12 @@ ls ~/.gemini/config/skills ~/.gemini/antigravity-cli/builtin/skills 2>/dev/null
 | **Medium, self-contained** | a new module, a feature behind a clear interface, a multi-file page | Antigravity, Sonnet/Opus | `AGY_MODEL=claude-sonnet-5-5-medium` first; `claude-opus-5-5-high` (the default) when it needs real design or failed once |
 | **Hard or risky** | architecture, auth, security, data migrations, deleting things, a bug that survived 2 attempts | Claude + advisor | Consult the advisor before choosing the approach, then do it yourself. |
 
-Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the effort level is part of the model id (`-low` / `-medium` / `-high`); `agy models` lists them all. Write the chosen id next to the task in `TASKS.md`.
+Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the effort level is part of the model id (`-low` / `-medium` / `-high`). Write the chosen id next to the task in `TASKS.md`.
+
+**Any Antigravity model works.** `AGY_MODEL` (tasks), `AGY_ASK_MODEL` (side questions) and `AGY_FALLBACK` (out-of-usage switch) take any id that `agy models` lists — Claude, Gemini, Argon, GPT-OSS or whatever the user's account has. The ids in the table above are defaults, not limits.
+
+- **The user's choice wins.** If the user names a model or effort ("use Argon for this", "run everything on GPT-OSS", "Sonnet high for the tests"), use exactly that id for those tasks, even when the table would pick something cheaper. Mention the cost only if it is a strong model on tiny work.
+- **Check what this account has.** Once per session, before the first hand-off, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. another `-low` Flash-class model for small work), and set `AGY_FALLBACK` to a listed model if `gemini-3.8-flash-high` isn't there.
 
 ### Backup lane: Antigravity unavailable
 

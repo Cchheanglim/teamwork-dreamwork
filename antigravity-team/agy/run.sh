@@ -3,8 +3,8 @@
 # Usage: .agy/run.sh <prompt-file> [conversation-id]
 # Env:   AGY_FROM  who is asking, shown in the watcher (default: Claude)
 #        AGY_MODE  agy --mode (default: accept-edits; headless denies writes otherwise)
-#        AGY_MODEL agy --model (default: claude-opus-5-5-high; use gemini-3.8-flash-high for small tasks)
-# Runs on AGY_MODEL; falls back to Gemini 3.8 Flash (High) if it is out of usage.
+#        AGY_MODEL    agy --model, any id from `agy models` (default: claude-opus-5-5-high)
+#        AGY_FALLBACK model to switch to once when AGY_MODEL is out of usage (default: gemini-3.8-flash-high)
 # Exit: 0 done, 1 another task is running, 69 agy unavailable (no result), 75 out of usage.
 # Messages queued with `.agy/tell.sh` while the task runs are delivered as follow-ups
 # on the same conversation as soon as the current turn ends.
@@ -13,7 +13,7 @@ PROMPT_FILE="$1"; CONV="$2"
 FROM="${AGY_FROM:-Claude}"
 MODE="${AGY_MODE:-accept-edits}"
 PRIMARY="${AGY_MODEL:-claude-opus-5-5-high}"
-FALLBACK=gemini-3.8-flash-high
+FALLBACK="${AGY_FALLBACK:-gemini-3.8-flash-high}"
 INBOX=.agy/inbox.jsonl
 
 # One task at a time: the lock, inbox and last-conversation files are shared per project.

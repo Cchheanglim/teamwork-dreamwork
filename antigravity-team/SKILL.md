@@ -48,7 +48,7 @@ Always go through these scripts rather than calling `agy` directly. They log eve
 
 | Script | Who uses it | What it does |
 |---|---|---|
-| `bash .agy/run.sh <prompt-file> [conversation-id]` | Claude | Gives Antigravity a task (model from `AGY_MODEL`, default Opus 5.5 High; falls back to Gemini 3.8 Flash High when out of usage; `--mode accept-edits`, override with `AGY_MODE`). Refuses to start while another task is running. Delivers queued `/tell` messages as follow-ups when each turn ends. Prints the final result line. |
+| `bash .agy/run.sh <prompt-file> [conversation-id]` | Claude | Gives Antigravity a task (model from `AGY_MODEL`, any id from `agy models`, default Opus 5.5 High; switches once to `AGY_FALLBACK`, default Gemini 3.8 Flash High, when out of usage; `--mode accept-edits`, override with `AGY_MODE`). Refuses to start while another task is running. Delivers queued `/tell` messages as follow-ups when each turn ends. Prints the final result line. |
 | `AGY_FROM=Claude bash .agy/ask.sh "question"` | Claude or user | Side question answered by a separate read-only session that is given the running task's progress. Works while a task runs. Model from `AGY_ASK_MODEL` (default Opus 5.5 High). |
 | `AGY_FROM=Claude bash .agy/tell.sh "instruction"` | Claude or user | Instruction for the task session: queued if a task is running, otherwise sent right away as a follow-up on the last task. |
 | `bash .agy/chat.sh` | user | Chat box: plain text = question, `/tell ...`, `/status`, `/quit`. |

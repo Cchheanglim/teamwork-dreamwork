@@ -2,7 +2,8 @@
 # Ask Antigravity a question - works even while it is busy on a task.
 # Usage: .agy/ask.sh "your question"
 # Env:   AGY_FROM       who is asking (default: You; Claude sets AGY_FROM=Claude)
-#        AGY_ASK_MODEL  agy --model for the answer (default: claude-opus-5-5-high)
+#        AGY_ASK_MODEL  agy --model for the answer, any id from `agy models` (default: claude-opus-5-5-high)
+#        AGY_FALLBACK   model to switch to once when it is out of usage (default: gemini-3.8-flash-high)
 #
 # The question goes to a separate, read-only Antigravity session that is given
 # the running task, what the task session has done so far and its latest
@@ -11,7 +12,7 @@ cd "$(dirname "$0")/.." || exit 1
 [ -z "$1" ] && { echo 'Usage: .agy/ask.sh "your question"'; exit 1; }
 FROM="${AGY_FROM:-You}"
 PRIMARY="${AGY_ASK_MODEL:-claude-opus-5-5-high}"
-FALLBACK=gemini-3.8-flash-high
+FALLBACK="${AGY_FALLBACK:-gemini-3.8-flash-high}"
 QUESTION="$*"
 
 python .agy/log.py question "from=$FROM" --text "$QUESTION"

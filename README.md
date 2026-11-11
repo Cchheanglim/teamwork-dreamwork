@@ -28,10 +28,13 @@ Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwo
 |---|---|---|---|
 | `AGY_MODEL` | `run.sh` | `claude-opus-5-5-high` | Worker model **and** effort (`-low` / `-medium` / `-high`). See `agy models`. |
 | `AGY_ASK_MODEL` | `ask.sh` | `claude-opus-5-5-high` | Model for side questions. Claude uses `gemini-3.8-flash-low` for quick status checks. |
+| `AGY_FALLBACK` | `run.sh`, `ask.sh` | `gemini-3.8-flash-high` | Model to switch to once when the chosen one is out of usage. |
 | `AGY_MODE` | `run.sh` | `accept-edits` | `agy --mode`. Use `plan` for read-only tasks like reviews. |
 | `AGY_FROM` | all scripts | `Claude` (run.sh) / `You` | Name shown in the watcher. |
 
-If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `gemini-3.8-flash-high` once.
+If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBACK` once.
+
+**Any model works.** These variables take any id from `agy models`: Claude, Gemini, Argon, GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has.
 
 `run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed), `75` out of usage. On `69` or `75`, Claude uses the backup lane.
 
