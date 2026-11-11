@@ -3,6 +3,7 @@
 #   bash .agy/chat.sh
 # Everything you send also shows up in the watcher pane.
 cd "$(dirname "$0")/.." || exit 1
+. .agy/py.sh
 export AGY_FROM="${AGY_FROM:-You}"
 
 c_dim=$'\e[90m'; c_you=$'\e[35m'; c_ag=$'\e[36m'; c_off=$'\e[0m'
@@ -22,8 +23,8 @@ while true; do
   case "$line" in
     /quit|/exit) break ;;
     /status)
-      if python .agy/context.py --running; then echo "${c_dim}A task is running.${c_off}"; else echo "${c_dim}No task running.${c_off}"; fi
-      python .agy/context.py | sed -n '/## What the task session/,$p' | tail -n 15 ;;
+      if "$PY" .agy/context.py --running; then echo "${c_dim}A task is running.${c_off}"; else echo "${c_dim}No task running.${c_off}"; fi
+      "$PY" .agy/context.py | sed -n '/## What the task session/,$p' | tail -n 15 ;;
     /tell\ *) bash .agy/tell.sh "${line#/tell }" ;;
     /*) echo "${c_dim}Unknown command. Use /tell, /status or /quit.${c_off}" ;;
     *)

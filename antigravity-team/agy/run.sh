@@ -5,10 +5,12 @@
 #        AGY_MODE  agy --mode (default: accept-edits; headless denies writes otherwise)
 #        AGY_MODEL    agy --model, any id from `agy models` (default: claude-opus-5-5-high)
 #        AGY_FALLBACK model to switch to once when AGY_MODEL is out of usage (default: gemini-3.8-flash-high)
-# Exit: 0 done, 1 another task is running, 69 agy unavailable (no result), 75 out of usage.
+#        AGY_PYTHON   Python 3 to use (default: first working of python3, python, py)
+# Exit: 0 done, 1 another task is running, 69 agy unavailable (no result) or Python 3 not found, 75 out of usage.
 # Messages queued with `.agy/tell.sh` while the task runs are delivered as follow-ups
 # on the same conversation as soon as the current turn ends.
 cd "$(dirname "$0")/.." || exit 1
+. .agy/py.sh
 PROMPT_FILE="$1"; CONV="$2"
 FROM="${AGY_FROM:-Claude}"
 MODE="${AGY_MODE:-accept-edits}"
@@ -33,7 +35,7 @@ turn() {
   local model="$1" from="$2" file="$3" out=".agy/last-$1.log"
   local args=(-p "$(cat "$file")" --model "$model" --mode "$MODE" --output-format stream-json --print-timeout 900s)
   [ -n "$CONV" ] && args+=(--conversation "$CONV")
-  python .agy/log.py prompt lane=task "from=$from" "model=$model" "conversation_id=$CONV" --text-file "$file"
+  "$PY" .agy/log.py prompt lane=task "from=$from" "model=$model" "conversation_id=$CONV" --text-file "$file"
   agy "${args[@]}" 2>&1 | tee "$out" | tee -a .agy/live.log >/dev/null
   local id; id=$(grep -o '"conversation_id":"[^"]*"' "$out" | tail -n 1 | cut -d'"' -f4)
   [ -n "$id" ] && CONV="$id" && echo "$id" > .agy/last-conversation
@@ -48,7 +50,7 @@ turn() {
 turn_with_fallback() {
   turn "$MODEL" "$1" "$2"; local rc=$?
   if [ $rc -eq 75 ] && [ "$MODEL" = "$PRIMARY" ] && [ "$PRIMARY" != "$FALLBACK" ]; then
-    python .agy/log.py notice --text "$PRIMARY is out of usage, switching to $FALLBACK"
+    "$PY" .agy/log.py notice --text "$PRIMARY is out of usage, switching to $FALLBACK"
     MODEL="$FALLBACK"; CONV=""   # fresh conversation on the fallback model
     turn "$MODEL" "$1" "$2"; rc=$?
   fi
@@ -65,7 +67,7 @@ turn_with_fallback "$FROM" "$PROMPT_FILE"; rc=$?
 while [ $rc -eq 0 ] && [ -s "$INBOX" ]; do
   batch=".agy/inbox.$$.jsonl"; mv "$INBOX" "$batch"
   msg=".agy/inbox.$$.txt"
-  python - "$batch" "$msg" <<'PY'
+  "$PY" - "$batch" "$msg" <<'PY'
 import json, sys
 items = [json.loads(l) for l in open(sys.argv[1], encoding="utf-8") if l.strip()]
 with open(sys.argv[2], "w", encoding="utf-8") as f:
@@ -73,7 +75,7 @@ with open(sys.argv[2], "w", encoding="utf-8") as f:
     for i in items:
         f.write(f"From {i['from']}: {i['text']}\n")
 PY
-  senders=$(python -c "import json,sys; print(' + '.join(sorted({json.loads(l)['from'] for l in open(sys.argv[1],encoding='utf-8') if l.strip()})))" "$batch")
+  senders=$("$PY" -c "import json,sys; print(' + '.join(sorted({json.loads(l)['from'] for l in open(sys.argv[1],encoding='utf-8') if l.strip()})))" "$batch")
   turn_with_fallback "$senders" "$msg"; rc=$?
   rm -f "$batch" "$msg"
 done

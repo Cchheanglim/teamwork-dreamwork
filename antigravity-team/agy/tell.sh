@@ -7,14 +7,15 @@
 # current turn ends. If nothing is running, it is sent right away as a
 # follow-up on the last task conversation.
 cd "$(dirname "$0")/.." || exit 1
+. .agy/py.sh
 [ -z "$1" ] && { echo 'Usage: .agy/tell.sh "message for the task"'; exit 1; }
 FROM="${AGY_FROM:-You}"
 MSG="$*"
 
 pid="$(cat .agy/task.lock 2>/dev/null)"
 if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-  python -c "import json,sys; print(json.dumps({'from': sys.argv[1], 'text': sys.argv[2]}, ensure_ascii=False))" "$FROM" "$MSG" >> .agy/inbox.jsonl
-  python .agy/log.py queued "from=$FROM" --text "$MSG"
+  "$PY" -c "import json,sys; print(json.dumps({'from': sys.argv[1], 'text': sys.argv[2]}, ensure_ascii=False))" "$FROM" "$MSG" >> .agy/inbox.jsonl
+  "$PY" .agy/log.py queued "from=$FROM" --text "$MSG"
   echo "Queued - Antigravity gets this when its current step finishes."
 else
   tmp="$(mktemp)"; printf '%s\n' "$MSG" > "$tmp"
