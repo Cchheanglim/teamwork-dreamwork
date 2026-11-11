@@ -1,3 +1,21 @@
+<p align="center">
+  <img src="assets/banner.svg" width="100%" alt="teamwork-dreamwork: Claude's pixel mascot in a strawberry hat and the Antigravity logo in an orange hat, sitting together on a halftone cloud. Claude plans. Antigravity builds. Same result, fewer tokens.">
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0757B8"></a>
+  <img alt="Works on macOS, Linux and Windows" src="https://img.shields.io/badge/works%20on-macOS%20%7C%20Linux%20%7C%20Windows-1E74CF">
+  <img alt="Claude Code skill" src="https://img.shields.io/badge/Claude%20Code-skill-C97B5F">
+  <img alt="Antigravity worker" src="https://img.shields.io/badge/Antigravity-worker-3D8BFF">
+</p>
+
+<p align="center">
+  <a href="#install"><b>Install</b></a> ·
+  <a href="#how-it-works"><b>How it works</b></a> ·
+  <a href="#usage"><b>Usage</b></a> ·
+  <a href="#settings-environment-variables"><b>Settings</b></a>
+</p>
+
 # teamwork-dreamwork
 
 Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwork` sends each task to the cheapest model and effort level that can do it (Claude inline, Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, Claude + built-in /advisor for hard work). `antigravity-team` is the base it builds on: Claude is the boss, Google Antigravity (`agy` CLI) is the worker.
@@ -21,7 +39,9 @@ Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwo
 | `agy/chat.sh` | User | Terminal chat box for questions, instructions, and status (reads `AGY_FROM`). |
 | `agy/context.py` | `ask.sh`, `chat.sh` | Extracts task progress and running status from `.agy/live.log`. |
 | `agy/log.py` | agy scripts | Appends structured JSON events to `.agy/live.log` for the watcher. |
-| `watch.ps1` | User | PowerShell live log viewer displaying agent activity, tools, and stream output. |
+| `agy/py.sh` | agy scripts | Finds a working Python 3 (`python3`, `python`, then `py`; or `AGY_PYTHON`). |
+| `watch.py` | User | Live log viewer (macOS, Linux, Windows) showing agent activity, tools, and stream output. |
+| `watch.ps1` | User | The same viewer in PowerShell, for Windows users who prefer it. |
 
 ### Settings (environment variables)
 | Variable | Used by | Default | What it sets |
@@ -31,12 +51,13 @@ Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwo
 | `AGY_FALLBACK` | `run.sh`, `ask.sh` | `gemini-3.8-flash-high` | Model to switch to once when the chosen one is out of usage. |
 | `AGY_MODE` | `run.sh` | `accept-edits` | `agy --mode`. Use `plan` for read-only tasks like reviews. |
 | `AGY_FROM` | all scripts | `Claude` (run.sh) / `You` | Name shown in the watcher. |
+| `AGY_PYTHON` | all scripts | first working of `python3`, `python`, `py` | Python 3 to use, e.g. a full path. |
 
 If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBACK` once.
 
 **Any model works.** These variables take any id from `agy models`: Claude, Gemini, Argon, GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has.
 
-`run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed), `75` out of usage. On `69` or `75`, Claude uses the backup lane.
+`run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed) or Python 3 wasn't found, `75` out of usage. On `69` or `75`, Claude uses the backup lane.
 
 ### What gets created in your project
 - `.agy/`: Copied scripts and runtime state (`live.log`, `last-conversation`, `inbox`, `task.lock`).
@@ -53,7 +74,7 @@ Both should be git-ignored.
 7. Claude releases locks, updates `TASKS.md`, and leaves reviewed, uncommitted changes ready for you to commit.
 
 ### Watching and talking to the worker
-- **Watcher** (PowerShell): `powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1"` (add `-History` to replay).
+- **Watcher** (any OS, run from your project folder): `python3 ~/.claude/skills/antigravity-team/watch.py` (add `--history` to replay). On Windows use `python` instead of `python3` if needed, or the PowerShell version: `powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1"` (add `-History`).
 - **Chat box** (bash): `bash .agy/chat.sh`
   - *Plain text*: Question answered right away by a side session without interrupting the task.
   - `/tell <message>`: Instruction for the task session (queued while busy, delivered when current step ends).
@@ -64,23 +85,23 @@ Both should be git-ignored.
 
 - **Claude Code**
 - **Antigravity CLI (`agy`)**: on `PATH` and signed in
-- **bash**: Git Bash on Windows
-- **python**: on `PATH`
-- **PowerShell**: only for the optional watcher
+- **bash**: built in on macOS and Linux (macOS's bash 3.2 is fine); Git Bash on Windows
+- **Python 3**: `python3` or `python` on `PATH` (standard library only)
+- Works on **macOS, Linux and Windows**. PowerShell is optional (Windows-only watcher alternative).
 - **Antigravity skills**: expected in the default `~/.gemini/config/skills`
 
 ## Install
 
 Both folders are required.
 
-bash:
+macOS / Linux / Git Bash:
 ```bash
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 mkdir -p ~/.claude/skills
 cp -r teamwork-dreamwork/teamwork-dreamwork teamwork-dreamwork/antigravity-team ~/.claude/skills/
 ```
 
-PowerShell:
+Windows PowerShell:
 ```powershell
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
@@ -121,3 +142,5 @@ Type `/teamwork-dreamwork` (or say "save tokens") for multi-part work; skip it f
 ## License
 
 MIT (see LICENSE).
+
+Not affiliated with Anthropic or Google. Clawd and the Antigravity logo belong to their owners and appear in the banner as a fan nod to the two tools this project connects.

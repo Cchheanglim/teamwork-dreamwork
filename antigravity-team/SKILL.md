@@ -53,8 +53,10 @@ Always go through these scripts rather than calling `agy` directly. They log eve
 | `AGY_FROM=Claude bash .agy/tell.sh "instruction"` | Claude or user | Instruction for the task session: queued if a task is running, otherwise sent right away as a follow-up on the last task. |
 | `bash .agy/chat.sh` | user | Chat box: plain text = question, `/tell ...`, `/status`, `/quit`. |
 
+The scripts run on macOS, Linux and Windows (Git Bash). `.agy/py.sh` picks Python 3 for them (`python3`, then `python`, then `py`; override with `AGY_PYTHON`). If none works, they exit `69` with a message: tell the user to install Python 3.
+
 - Start tasks with `run_in_background` so Claude keeps working (and can `ask`/`tell`) in parallel.
-- The first time in a project, show the user the two-pane setup: watcher `powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1"` (add `-History` to replay) and chat box `bash .agy/chat.sh`. The watcher shows who asked what, Antigravity's actions and replies, side Q&A and queued messages.
+- The first time in a project, show the user the two-pane setup, run from the project folder: watcher `python3 ~/.claude/skills/antigravity-team/watch.py` (any OS; add `--history` to replay; on Windows use `python` if `python3` isn't available, or `powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1"` with `-History`) and chat box `bash .agy/chat.sh`. The watcher shows who asked what, Antigravity's actions and replies, side Q&A and queued messages.
 - Headless `agy -p` auto-denies shell commands and (without `accept-edits`) file writes, yet still reports `status: SUCCESS`. Always check `denied_actions` in the result and `git status`. If it couldn't run something, run it yourself (Claude) rather than loosening its permissions.
 - Save the `conversation_id` from the result (also in `.agy/last-conversation`) next to the task in `TASKS.md`. For feedback on a finished task, `bash .agy/run.sh <feedback-file> <conversation-id>`.
 - **Never** pass `--dangerously-skip-permissions`.
