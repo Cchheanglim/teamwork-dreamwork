@@ -1,13 +1,13 @@
 ---
 name: teamwork-dreamwork
-description: Token-saving team mode. Every task goes to the cheapest model and effort level that can do it right - Claude inline for tiny edits, a Haiku sub-agent for lookups, Antigravity on Gemini Flash (low/medium) for small mechanical work, Antigravity on Sonnet or Opus for bigger self-contained work, and Claude plus the built-in /advisor (Opus/Fable) only for hard or risky calls. Use when the user says "teamwork dreamwork", "advisor team", "save tokens", "cheap mode", or wants Claude + Antigravity + advisor together.
+description: Token-saving team mode. Every task goes to the cheapest model and effort level that can do it right - Claude inline for tiny edits, a Haiku sub-agent for lookups, Antigravity on Gemini Flash (low/medium) for small mechanical work, Antigravity on Sonnet or Opus for bigger self-contained work, and Claude plus the built-in /advisor (Opus/Fable) only for hard or risky calls. Use when the user says "teamwork dreamwork", "team mode", "use Antigravity", "advisor team", "save tokens", "cheap mode", or wants Claude + Antigravity (+ advisor) to split work.
 ---
 
 # Advisor team mode
 
 Goal: the same result as using the strongest model for everything, for far fewer tokens. A strong model only touches what needs a strong model.
 
-This skill builds on `antigravity-team`. Before the first hand-off, read `~/.claude/skills/antigravity-team/SKILL.md` and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file only adds **routing** and **token rules**.
+Before the first hand-off, read `team-mode.md` in this skill's folder (`~/.claude/skills/teamwork-dreamwork/team-mode.md`) and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file adds **routing** and **token rules** on top of it.
 
 ## 1. Setup the user does once
 

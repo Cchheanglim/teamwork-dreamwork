@@ -18,7 +18,7 @@
 
 # teamwork-dreamwork
 
-Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwork` sends each task to the cheapest model and effort level that can do it (Claude inline, Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, Claude + built-in /advisor for hard work). `antigravity-team` is the base it builds on: Claude is the boss, Google Antigravity (`agy` CLI) is the worker.
+A Claude Code skill for token-saving teamwork. Claude is the boss and Google Antigravity (the `agy` CLI) is the worker. Every task goes to the cheapest model and effort level that can do it: Claude inline, a Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, or Claude + the built-in `/advisor` for hard work.
 
 ## How it works
 
@@ -29,10 +29,12 @@ Two Claude Code skills for token-saving multi-agent workflows. `teamwork-dreamwo
 - **Haiku sub-agent**: Lightweight Claude sub-agent for cheap lookups.
 
 ### What each file does
+Everything lives in one skill folder, `teamwork-dreamwork/`:
+
 | File | Who uses it | What it does |
 |---|---|---|
-| `teamwork-dreamwork/SKILL.md` | Claude | Routing rules, lane cost tiers, advisor triggers, and token guidelines. |
-| `antigravity-team/SKILL.md` | Claude | Base team setup: board conventions, task preamble, file locks, and review flow. |
+| `SKILL.md` | Claude | Routing rules, lane cost tiers, advisor triggers, and token guidelines. |
+| `team-mode.md` | Claude | The base workflow: board conventions, task preamble, file locks, and review flow. |
 | `agy/run.sh` | Claude | Runs worker tasks, handles model fallback and queued inbox (reads `AGY_MODEL`, `AGY_MODE`, `AGY_FROM`). Refuses to start while another task runs in the same project. |
 | `agy/ask.sh` | Claude / user | Side Q&A session given task context without interrupting work (reads `AGY_FROM`, `AGY_ASK_MODEL`). |
 | `agy/tell.sh` | Claude / user | Sends instructions to worker; queues them if a task is running, otherwise sends them right away as a follow-up on the last task (reads `AGY_FROM`). |
@@ -74,7 +76,7 @@ Both should be git-ignored.
 7. Claude releases locks, updates `TASKS.md`, and leaves reviewed, uncommitted changes ready for you to commit.
 
 ### Watching and talking to the worker
-- **Watcher** (any OS, run from your project folder): `python3 ~/.claude/skills/antigravity-team/watch.py` (add `--history` to replay). On Windows use `python` instead of `python3` if needed, or the PowerShell version: `powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1"` (add `-History`).
+- **Watcher** (any OS, run from your project folder): `python3 ~/.claude/skills/teamwork-dreamwork/watch.py` (add `--history` to replay). On Windows use `python` instead of `python3` if needed, or the PowerShell version: `powershell -File "$HOME\.claude\skills\teamwork-dreamwork\watch.ps1"` (add `-History`).
 - **Chat box** (bash): `bash .agy/chat.sh`
   - *Plain text*: Question answered right away by a side session without interrupting the task.
   - `/tell <message>`: Instruction for the task session (queued while busy, delivered when current step ends).
@@ -92,23 +94,23 @@ Both should be git-ignored.
 
 ## Install
 
-Both folders are required.
+Copy the `teamwork-dreamwork` skill folder into `~/.claude/skills/`.
 
 macOS / Linux / Git Bash:
 ```bash
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 mkdir -p ~/.claude/skills
-cp -r teamwork-dreamwork/teamwork-dreamwork teamwork-dreamwork/antigravity-team ~/.claude/skills/
+cp -r teamwork-dreamwork/teamwork-dreamwork ~/.claude/skills/
 ```
 
 Windows PowerShell:
 ```powershell
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
-Copy-Item -Recurse -Force teamwork-dreamwork\teamwork-dreamwork, teamwork-dreamwork\antigravity-team "$HOME\.claude\skills\"
+Copy-Item -Recurse -Force teamwork-dreamwork\teamwork-dreamwork "$HOME\.claude\skills\"
 ```
 
-Restart Claude Code after copying so the skills show up. To update later, `git pull` and run the copy command again.
+Restart Claude Code after copying so the skill shows up. To update later, `git pull` and run the copy command again.
 
 ## Recommended Setup
 

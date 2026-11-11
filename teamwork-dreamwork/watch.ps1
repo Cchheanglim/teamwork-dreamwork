@@ -1,5 +1,5 @@
 # Live chat view of the Claude <-> Antigravity conversation.
-# Usage (from a project folder):  powershell -File "$HOME\.claude\skills\antigravity-team\watch.ps1" [-History]
+# Usage (from a project folder):  powershell -File "$HOME\.claude\skills\teamwork-dreamwork\watch.ps1" [-History]
 #   -History   replay everything already in the log before following new messages
 param([string]$Log = ".agy\live.log", [switch]$History)
 
