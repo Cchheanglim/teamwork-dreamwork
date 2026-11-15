@@ -5,6 +5,7 @@
 #        AGY_MODE  agy --mode (default: accept-edits; headless denies writes otherwise)
 #        AGY_MODEL    agy --model, any id from `agy models` (default: claude-opus-5-5-high)
 #        AGY_FALLBACK model to switch to once when AGY_MODEL is out of usage (default: gemini-3.8-flash-high)
+#        AGY_ALLOW    exact shell commands the worker may run, separated by | (default: none)
 #        AGY_PYTHON   Python 3 to use (default: first working of python3, python, py)
 # Exit: 0 done, 1 another task is running, 69 agy unavailable (no result) or Python 3 not found, 75 out of usage.
 # Messages queued with `.agy/tell.sh` while the task runs are delivered as follow-ups
@@ -33,7 +34,7 @@ is_out_of_usage() {
 # One turn on one model. Streams into the shared log for the watcher.
 turn() {
   local model="$1" from="$2" file="$3" out=".agy/last-$1.log"
-  local args=(-p "$(cat "$file")" --model "$model" --mode "$MODE" --output-format stream-json --print-timeout 900s)
+  local args=(-p "$(cat "$file")" --model "$model" --mode "$MODE" --output-format stream-json --print-timeout 900s --settings .agy/settings.json)
   [ -n "$CONV" ] && args+=(--conversation "$CONV")
   "$PY" .agy/log.py prompt lane=task "from=$from" "model=$model" "conversation_id=$CONV" --text-file "$file"
   agy "${args[@]}" 2>&1 | tee "$out" | tee -a .agy/live.log >/dev/null
@@ -59,6 +60,14 @@ turn_with_fallback() {
 
 echo $$ > .agy/task.lock          # tell.sh queues messages while this exists
 trap 'rm -f .agy/task.lock' EXIT
+
+# Allow only the AGY_ALLOW commands. --settings replaces the user's own agy allowlist, and
+# allow rules match the whole command line exactly, so extra args or chained commands are denied.
+"$PY" - "${AGY_ALLOW:-}" > .agy/settings.json <<'PY'
+import json, sys
+cmds = [c.strip() for c in sys.argv[1].split("|") if c.strip()]
+print(json.dumps({"permissions": {"allow": [f"command({c})" for c in cmds]}}))
+PY
 
 MODEL="$PRIMARY"
 turn_with_fallback "$FROM" "$PROMPT_FILE"; rc=$?

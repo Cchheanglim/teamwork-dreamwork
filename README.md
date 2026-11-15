@@ -35,7 +35,7 @@ Everything lives in one skill folder, `teamwork-dreamwork/`:
 |---|---|---|
 | `SKILL.md` | Claude | Routing rules, lane cost tiers, advisor triggers, and token guidelines. |
 | `team-mode.md` | Claude | The base workflow: board conventions, task preamble, file locks, and review flow. |
-| `agy/run.sh` | Claude | Runs worker tasks, handles model fallback and queued inbox (reads `AGY_MODEL`, `AGY_MODE`, `AGY_FROM`). Refuses to start while another task runs in the same project. |
+| `agy/run.sh` | Claude | Runs worker tasks, handles model fallback and queued inbox (reads `AGY_MODEL`, `AGY_MODE`, `AGY_ALLOW`, `AGY_FROM`). Refuses to start while another task runs in the same project. |
 | `agy/ask.sh` | Claude / user | Side Q&A session given task context without interrupting work (reads `AGY_FROM`, `AGY_ASK_MODEL`). |
 | `agy/tell.sh` | Claude / user | Sends instructions to worker; queues them if a task is running, otherwise sends them right away as a follow-up on the last task (reads `AGY_FROM`). |
 | `agy/chat.sh` | User | Terminal chat box for questions, instructions, and status (reads `AGY_FROM`). |
@@ -52,6 +52,7 @@ Everything lives in one skill folder, `teamwork-dreamwork/`:
 | `AGY_ASK_MODEL` | `ask.sh` | `claude-opus-5-5-high` | Model for side questions. Claude uses `gemini-3.8-flash-low` for quick status checks. |
 | `AGY_FALLBACK` | `run.sh`, `ask.sh` | `gemini-3.8-flash-high` | Model to switch to once when the chosen one is out of usage. |
 | `AGY_MODE` | `run.sh` | `accept-edits` | `agy --mode`. Use `plan` for read-only tasks like reviews. |
+| `AGY_ALLOW` | `run.sh` | none | Exact shell commands the worker may run, separated by `\|`, e.g. `npm test\|npx tsc --noEmit`. Replaces your own agy allowlist for the task; extra arguments and chained commands are denied. |
 | `AGY_FROM` | all scripts | `Claude` (run.sh) / `You` | Name shown in the watcher. |
 | `AGY_PYTHON` | all scripts | first working of `python3`, `python`, `py` | Python 3 to use, e.g. a full path. |
 
@@ -62,13 +63,13 @@ If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBA
 `run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed) or Python 3 wasn't found, `75` out of usage. On `69` or `75`, Claude uses the backup lane.
 
 ### What gets created in your project
-- `.agy/`: Copied scripts and runtime state (`live.log`, `last-conversation`, `inbox`, `task.lock`).
+- `.agy/`: Copied scripts and runtime state (`live.log`, `last-conversation`, `inbox`, `task.lock`, `settings.json`).
 - `TASKS.md`: The board tracking file locks, queues, and task status.
 Both should be git-ignored.
 
 ### A typical run
 1. Type `/teamwork-dreamwork` (or "save tokens") for multi-part work.
-2. On first use in a project, Claude copies the scripts into `.agy/` and creates `TASKS.md`. It also lists Antigravity's own skills so it can tell the worker to use a matching one.
+2. At the start of each session, Claude copies the scripts into `.agy/` (creating `TASKS.md` the first time), checks `agy models`, and lists Antigravity's own skills so it can tell the worker to use a matching one.
 3. Claude plans tasks in `TASKS.md`, locks files, and routes each to the cheapest capable lane (consulting the advisor first for the plan and for hard or risky tasks).
 4. Claude handles tiny edits inline, delegates lookups to Haiku, or hands tasks to Antigravity via `.agy/run.sh`, one at a time.
 5. Antigravity runs in the background; you can watch live progress or send instructions via chat.
@@ -86,7 +87,7 @@ Both should be git-ignored.
 ## Requirements
 
 - **Claude Code**
-- **Antigravity CLI (`agy`)**: on `PATH` and signed in
+- **Antigravity CLI (`agy`)**: on `PATH`, signed in, and recent enough to have `--settings` (check `agy --help`). Older versions make every task exit `69`.
 - **bash**: built in on macOS and Linux (macOS's bash 3.2 is fine); Git Bash on Windows
 - **Python 3**: `python3` or `python` on `PATH` (standard library only)
 - Works on **macOS, Linux and Windows**. PowerShell is optional (Windows-only watcher alternative).
@@ -119,7 +120,13 @@ Restart Claude Code after copying so the skill shows up. To update later, `git p
 
 ## Usage
 
-Type `/teamwork-dreamwork` (or say "save tokens") for multi-part work; skip it for quick questions and one-line fixes.
+Type `/teamwork-dreamwork` (or say "save tokens") for multi-part work; skip it for quick questions and one-line fixes. Once started, it stays on for the rest of the session.
+
+**Always on.** A skill only starts when you call it or Claude matches its description. To have every session use it for dev work, add this line to `~/.claude/CLAUDE.md` (or a project's `CLAUDE.md`):
+
+```
+For any multi-part development task, use the /teamwork-dreamwork skill and follow its routing and report rules.
+```
 
 ### Routing Table
 
@@ -136,7 +143,7 @@ Type `/teamwork-dreamwork` (or say "save tokens") for multi-part work; skip it f
 ## Safety Notes
 
 - Never pass `--dangerously-skip-permissions`.
-- Headless `agy` cannot run shell commands, so Claude runs all tests.
+- The worker runs no shell commands unless Claude lists them in `AGY_ALLOW`, and only verification or build commands go there; never deletes, installs or git writes. Claude still runs the final tests.
 - Claude reviews every diff. A worker's "SUCCESS" is a claim, not proof.
 - Only one Antigravity task runs at a time per project.
 - Nothing is committed or pushed for you; reviewed changes are left in your working tree.

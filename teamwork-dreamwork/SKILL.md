@@ -7,7 +7,17 @@ description: Token-saving team mode. Every task goes to the cheapest model and e
 
 Goal: the same result as using the strongest model for everything, for far fewer tokens. A strong model only touches what needs a strong model.
 
-Before the first hand-off, read `team-mode.md` in this skill's folder (`~/.claude/skills/teamwork-dreamwork/team-mode.md`) and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file adds **routing** and **token rules** on top of it.
+At session start, read `team-mode.md` in this skill's folder (`~/.claude/skills/teamwork-dreamwork/team-mode.md`) and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file adds **routing** and **token rules** on top of it.
+
+**Stays on.** Once started, this mode covers every task for the rest of the session, including problems the user reports later, until the user says to stop.
+
+**Session start checklist**, before the first task (even one you keep yourself):
+1. Advisor setup (§1).
+2. `agy models` ids (§2).
+3. Antigravity skill names (§1b).
+4. `TASKS.md` and the `.agy/` scripts (`team-mode.md` §1 and §3).
+
+Tell the user in one line what each step found. If a step fails (no `agy`, no skills folder), say which and carry on with the lanes that still work.
 
 ## 1. Setup the user does once
 
@@ -21,7 +31,7 @@ If the main model is already Opus, the advisor adds nothing; say so once and con
 
 ## 1b. Know both teams' skills
 
-Claude already sees its own skills. Antigravity has a separate set that Claude does not see. Once per session, before the first hand-off, list only their names (no descriptions, to save tokens):
+Claude already sees its own skills. Antigravity has a separate set that Claude does not see. Once per session, at session start, list only their names (no descriptions, to save tokens):
 
 ```bash
 ls ~/.gemini/config/skills ~/.gemini/antigravity-cli/builtin/skills 2>/dev/null
@@ -41,12 +51,12 @@ ls ~/.gemini/config/skills ~/.gemini/antigravity-cli/builtin/skills 2>/dev/null
 | **Medium, self-contained** | a new module, a feature behind a clear interface, a multi-file page | Antigravity, Sonnet/Opus | `AGY_MODEL=claude-sonnet-5-5-medium` first; `claude-opus-5-5-high` (the default) when it needs real design or failed once |
 | **Hard or risky** | architecture, auth, security, data migrations, deleting things, a bug that survived 2 attempts | Claude + advisor | Consult the advisor before choosing the approach, then do it yourself. |
 
-Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the effort level is part of the model id (`-low` / `-medium` / `-high`). Write the chosen id next to the task in `TASKS.md`.
+Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the effort level is part of the model id (`-low` / `-medium` / `-high`). Write the chosen id next to the task in `TASKS.md`. When the task has tests or a type check the worker should run, add `AGY_ALLOW="<exact command>|<exact command>"` (see the command policy in `team-mode.md` §3).
 
 **Any Antigravity model works.** `AGY_MODEL` (tasks), `AGY_ASK_MODEL` (side questions) and `AGY_FALLBACK` (out-of-usage switch) take any id that `agy models` lists — Claude, Gemini, Argon, GPT-OSS or whatever the user's account has. The ids in the table above are defaults, not limits.
 
 - **The user's choice wins.** If the user names a model or effort ("use Argon for this", "run everything on GPT-OSS", "Sonnet high for the tests"), use exactly that id for those tasks, even when the table would pick something cheaper. Mention the cost only if it is a strong model on tiny work.
-- **Check what this account has.** Once per session, before the first hand-off, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. another `-low` Flash-class model for small work), and set `AGY_FALLBACK` to a listed model if `gemini-3.8-flash-high` isn't there.
+- **Check what this account has.** Once per session, at session start, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. another `-low` Flash-class model for small work), and set `AGY_FALLBACK` to a listed model if `gemini-3.8-flash-high` isn't there.
 
 ### Backup lane: Antigravity unavailable
 
@@ -64,8 +74,9 @@ Use this only when Antigravity can't take the task: `run.sh` exits `75` (the mod
 - Tiny, Lookup and Hard lanes are unchanged.
 
 Rules:
+- Route every task or package through this table, including the ones you keep. Don't keep Small or Medium work yourself just because you already have the files open; if you do keep it, say why in the report.
 - When unsure between two lanes, pick the cheaper one. If its result fails review, escalate one step (higher effort first, then a stronger model) — don't retry the same model and effort more than once.
-- Feedback on a finished task reuses its conversation: pass the same `AGY_MODEL` with the conversation id.
+- Feedback on a finished task reuses its conversation: pass the same `AGY_MODEL` and `AGY_ALLOW` with the conversation id.
 - Claude cannot switch its own session's model or effort; only the user can (`/model`, `/effort`). When the remaining work is a long run of easy edits, suggest `/effort low` to the user once; when a hard stretch starts, suggest `/effort high`. Sub-agents can take `model` and `effort` per call — this skill authorizes setting them.
 - Consult the advisor at these points only: the initial plan for a multi-task request, every hard/risky task, and after 2 failed attempts at the same problem. Never for tiny or small tasks.
 - Run Antigravity tasks with `run_in_background`, one at a time, and keep working on your own unlocked files.
@@ -78,10 +89,12 @@ Rules:
 - **Cheap review first.** Read the result line and `git diff --stat`. Read the full diff only for the files that task was allowed to touch. Never read `.agy/live.log` or `.agy/last-*.log` whole — grep them (`denied_actions`, `error`) if needed.
 - **Review as deep as the risk.** Small lane: diff + run the tests. Medium lane: diff + tests + check edge cases. Hard lane: full review.
 - **Don't re-read files** you already read this session unless they changed.
-- **Batch small tasks** into one Flash hand-off when they touch different files and share context.
+- **Notes before searching.** Read the board's **Notes** before investigating, and don't repeat a search whose answer is already there. Add one line per new finding.
+- **Batch small tasks** into one Flash hand-off when they touch different files and share context. Group related problems into packages (`team-mode.md` §2) instead of running one investigation per report.
+- **Name what was expensive.** Claude can't see its own token count, so never invent numbers. In the report, name any step that read many files, repeated a search or needed a retry. Add the worker's `usage.total_tokens` from each `run.sh` result line. The user can check Claude's side with `/context`.
 
 ## 4. Report to the user
 
-For each task: lane used, who did it, what Claude changed after review. End with what is still open.
+For each task or package, one line: `#n · lane · who · model/effort · why`, including the ones Claude kept (e.g. `#3 · Tiny · Claude · inline · one-line fix, a hand-off costs more`). Then what Claude changed after review, worker tokens, and what is still open. If any step of this skill couldn't be followed (setup step failed, `agy` missing or out of usage), say which and why.
 
 Never commit or push. Leave the reviewed changes in the working tree and tell the user they are ready to commit.
