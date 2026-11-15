@@ -5,7 +5,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0757B8"></a>
   <img alt="Works on macOS, Linux and Windows" src="https://img.shields.io/badge/works%20on-macOS%20%7C%20Linux%20%7C%20Windows-1E74CF">
-  <img alt="Claude Code skill" src="https://img.shields.io/badge/Claude%20Code-skill-C97B5F">
+  <img alt="Claude Code plugin or skill" src="https://img.shields.io/badge/Claude%20Code-plugin%20%7C%20skill-C97B5F">
   <img alt="Antigravity worker" src="https://img.shields.io/badge/Antigravity-worker-3D8BFF">
 </p>
 
@@ -18,7 +18,7 @@
 
 # teamwork-dreamwork
 
-A Claude Code skill for token-saving teamwork. Claude is the boss and Google Antigravity (the `agy` CLI) is the worker. Every task goes to the cheapest model and effort level that can do it: Claude inline, a Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, or Claude + the built-in `/advisor` for hard work.
+A Claude Code plugin (or plain skill) for token-saving teamwork. Claude is the boss and Google Antigravity (the `agy` CLI) is the worker. Every task goes to the cheapest model and effort level that can do it: Claude inline, a Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, or Claude + the built-in `/advisor` for hard work.
 
 ## How it works
 
@@ -29,7 +29,7 @@ A Claude Code skill for token-saving teamwork. Claude is the boss and Google Ant
 - **Haiku sub-agent**: Lightweight Claude sub-agent for cheap lookups.
 
 ### What each file does
-Everything lives in one skill folder, `teamwork-dreamwork/`:
+The plugin is one skill, in `skills/teamwork-dreamwork/` (paths below are relative to it). Plugin manifests live in `.claude-plugin/`.
 
 | File | Who uses it | What it does |
 |---|---|---|
@@ -42,8 +42,8 @@ Everything lives in one skill folder, `teamwork-dreamwork/`:
 | `agy/context.py` | `ask.sh`, `chat.sh` | Extracts task progress and running status from `.agy/live.log`. |
 | `agy/log.py` | agy scripts | Appends structured JSON events to `.agy/live.log` for the watcher. |
 | `agy/py.sh` | agy scripts | Finds a working Python 3 (`python3`, `python`, then `py`; or `AGY_PYTHON`). |
-| `watch.py` | User | Live log viewer (macOS, Linux, Windows) showing agent activity, tools, and stream output. |
-| `watch.ps1` | User | The same viewer in PowerShell, for Windows users who prefer it. |
+| `agy/watch.py` | User | Live log viewer (macOS, Linux, Windows) showing agent activity, tools, and stream output. |
+| `agy/watch.ps1` | User | The same viewer in PowerShell, for Windows users who prefer it. |
 
 ### Settings (environment variables)
 | Variable | Used by | Default | What it sets |
@@ -68,7 +68,7 @@ If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBA
 Both should be git-ignored.
 
 ### A typical run
-1. Type `/teamwork-dreamwork` (or "save tokens") for multi-part work.
+1. Type `/teamwork-dreamwork` (skill) or `/teamwork-dreamwork:teamwork-dreamwork` (plugin), or say "save tokens", for multi-part work.
 2. At the start of each session, Claude copies the scripts into `.agy/` (creating `TASKS.md` the first time), checks `agy models`, and lists Antigravity's own skills so it can tell the worker to use a matching one.
 3. Claude plans tasks in `TASKS.md`, locks files, and routes each to the cheapest capable lane (consulting the advisor first for the plan and for hard or risky tasks).
 4. Claude handles tiny edits inline, delegates lookups to Haiku, or hands tasks to Antigravity via `.agy/run.sh`, one at a time.
@@ -77,7 +77,7 @@ Both should be git-ignored.
 7. Claude releases locks, updates `TASKS.md`, and leaves reviewed, uncommitted changes ready for you to commit.
 
 ### Watching and talking to the worker
-- **Watcher** (any OS, run from your project folder): `python3 ~/.claude/skills/teamwork-dreamwork/watch.py` (add `--history` to replay). On Windows use `python` instead of `python3` if needed, or the PowerShell version: `powershell -File "$HOME\.claude\skills\teamwork-dreamwork\watch.ps1"` (add `-History`).
+- **Watcher** (any OS, run from your project folder): `python3 .agy/watch.py` (add `--history` to replay). On Windows use `python` instead of `python3` if needed, or the PowerShell version: `powershell -File .agy\watch.ps1` (add `-History`).
 - **Chat box** (bash): `bash .agy/chat.sh`
   - *Plain text*: Question answered right away by a side session without interrupting the task.
   - `/tell <message>`: Instruction for the task session (queued while busy, delivered when current step ends).
@@ -95,23 +95,39 @@ Both should be git-ignored.
 
 ## Install
 
-Copy the `teamwork-dreamwork` skill folder into `~/.claude/skills/`.
+Install it **either** as a plugin **or** as a skill, not both (both would load two copies).
+
+### As a plugin (easiest to update)
+
+In Claude Code:
+
+```
+/plugin install teamwork-dreamwork --marketplace Cchheanglim/teamwork-dreamwork
+```
+
+On older Claude Code versions, add the marketplace first: `/plugin marketplace add Cchheanglim/teamwork-dreamwork`, then `/plugin install teamwork-dreamwork@teamwork-dreamwork`. From a shell, the same commands work as `claude plugin marketplace add ...` and `claude plugin install ...`. Update with `claude plugin update teamwork-dreamwork` or from `/plugin`. The command is `/teamwork-dreamwork:teamwork-dreamwork`.
+
+### As a skill
+
+Copy the skill folder into `~/.claude/skills/`. The command is `/teamwork-dreamwork`.
 
 macOS / Linux / Git Bash:
 ```bash
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 mkdir -p ~/.claude/skills
-cp -r teamwork-dreamwork/teamwork-dreamwork ~/.claude/skills/
+cp -r teamwork-dreamwork/skills/teamwork-dreamwork ~/.claude/skills/
 ```
 
 Windows PowerShell:
 ```powershell
 git clone https://github.com/Cchheanglim/teamwork-dreamwork.git
 New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
-Copy-Item -Recurse -Force teamwork-dreamwork\teamwork-dreamwork "$HOME\.claude\skills\"
+Copy-Item -Recurse -Force teamwork-dreamwork\skills\teamwork-dreamwork "$HOME\.claude\skills\"
 ```
 
-Restart Claude Code after copying so the skill shows up. To update later, `git pull` and run the copy command again.
+To update, `git pull` and run the copy command again.
+
+Restart Claude Code after either install so the skill shows up. Switching to the plugin? Delete `~/.claude/skills/teamwork-dreamwork/` first.
 
 ## Recommended Setup
 
@@ -120,12 +136,12 @@ Restart Claude Code after copying so the skill shows up. To update later, `git p
 
 ## Usage
 
-Type `/teamwork-dreamwork` (or say "save tokens") for multi-part work; skip it for quick questions and one-line fixes. Once started, it stays on for the rest of the session.
+Type `/teamwork-dreamwork` (skill) or `/teamwork-dreamwork:teamwork-dreamwork` (plugin skills are prefixed with the plugin name), or just say "save tokens", for multi-part work. Skip it for quick questions and one-line fixes. Once started, it stays on for the rest of the session.
 
 **Always on.** A skill only starts when you call it or Claude matches its description. To have every session use it for dev work, add this line to `~/.claude/CLAUDE.md` (or a project's `CLAUDE.md`):
 
 ```
-For any multi-part development task, use the /teamwork-dreamwork skill and follow its routing and report rules.
+For any multi-part development task, use the teamwork-dreamwork skill and follow its routing and report rules.
 ```
 
 ### Routing Table

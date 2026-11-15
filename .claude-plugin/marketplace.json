@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "teamwork-dreamwork",
+  "description": "Claude + Google Antigravity team mode for Claude Code.",
+  "owner": {
+    "name": "Cchheanglim",
+    "url": "https://github.com/Cchheanglim"
+  },
+  "plugins": [
+    {
+      "name": "teamwork-dreamwork",
+      "description": "Claude plans and reviews, Antigravity builds. Every task goes to the cheapest capable model.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

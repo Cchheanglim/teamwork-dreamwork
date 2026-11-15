@@ -40,11 +40,7 @@ Do not create a `CLAUDE.md` for this — the rules live in this skill and in the
 
 ## 3. Hand a task to Antigravity
 
-**Set up the scripts at the start of each session** (cheap, and picks up skill updates; runtime files in `.agy/` are kept): copy them in and git-ignore the folder:
-
-```bash
-mkdir -p .agy && cp "$HOME/.claude/skills/teamwork-dreamwork/agy/"* .agy/ && chmod +x .agy/*.sh
-```
+**Set up the scripts at the start of each session** with the copy command in step 4 of the `SKILL.md` checklist. It holds the skill folder's real path.
 
 Always go through these scripts rather than calling `agy` directly. They log every message to `.agy/live.log` so the user can see the whole conversation:
 
@@ -54,11 +50,12 @@ Always go through these scripts rather than calling `agy` directly. They log eve
 | `AGY_FROM=Claude bash .agy/ask.sh "question"` | Claude or user | Side question answered by a separate read-only session that is given the running task's progress. Works while a task runs. Model from `AGY_ASK_MODEL` (default Opus 5.5 High). |
 | `AGY_FROM=Claude bash .agy/tell.sh "instruction"` | Claude or user | Instruction for the task session: queued if a task is running, otherwise sent right away as a follow-up on the last task. |
 | `bash .agy/chat.sh` | user | Chat box: plain text = question, `/tell ...`, `/status`, `/quit`. |
+| `python3 .agy/watch.py` | user | Live viewer of `.agy/live.log` (`--history` to replay). `powershell -File .agy\watch.ps1` (`-History`) is the same in PowerShell. |
 
 The scripts run on macOS, Linux and Windows (Git Bash). `.agy/py.sh` picks Python 3 for them (`python3`, then `python`, then `py`; override with `AGY_PYTHON`). If none works, they exit `69` with a message: tell the user to install Python 3.
 
 - Start tasks with `run_in_background` so Claude keeps working (and can `ask`/`tell`) in parallel.
-- The first time in a project, show the user the two-pane setup, run from the project folder: watcher `python3 ~/.claude/skills/teamwork-dreamwork/watch.py` (any OS; add `--history` to replay; on Windows use `python` if `python3` isn't available, or `powershell -File "$HOME\.claude\skills\teamwork-dreamwork\watch.ps1"` with `-History`) and chat box `bash .agy/chat.sh`. The watcher shows who asked what, Antigravity's actions and replies, side Q&A and queued messages.
+- The first time in a project, show the user the two-pane setup, run from the project folder: watcher `python3 .agy/watch.py` (any OS; add `--history` to replay; on Windows use `python` if `python3` isn't available, or `powershell -File .agy\watch.ps1` with `-History`) and chat box `bash .agy/chat.sh`. The watcher shows who asked what, Antigravity's actions and replies, side Q&A and queued messages.
 - Headless `agy -p` denies every shell command that isn't allowed and (without `accept-edits`) file writes, yet still reports `status: SUCCESS`, often with an empty `response`. Always check `denied_actions` in the result and `git status`. If it couldn't run something it needed, run it yourself, or add that exact command to `AGY_ALLOW` if the command policy below allows it. Never loosen anything else.
 - Save the `conversation_id` from the result (also in `.agy/last-conversation`) next to the task in `TASKS.md`. For feedback on a finished task, `bash .agy/run.sh <feedback-file> <conversation-id>`.
 - **Never** pass `--dangerously-skip-permissions`.

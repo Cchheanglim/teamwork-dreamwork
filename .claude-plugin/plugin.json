@@ -1,0 +1,9 @@
+{
+  "name": "teamwork-dreamwork",
+  "version": "1.0.0",
+  "description": "Token-saving team mode: Claude plans and reviews, Google Antigravity (agy) does the work, and every task goes to the cheapest model and effort level that can do it right.",
+  "author": {
+    "name": "Cchheanglim",
+    "url": "https://github.com/Cchheanglim"
+  }
+}

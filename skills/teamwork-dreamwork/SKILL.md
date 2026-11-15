@@ -7,7 +7,7 @@ description: Token-saving team mode. Every task goes to the cheapest model and e
 
 Goal: the same result as using the strongest model for everything, for far fewer tokens. A strong model only touches what needs a strong model.
 
-At session start, read `team-mode.md` in this skill's folder (`~/.claude/skills/teamwork-dreamwork/team-mode.md`) and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file adds **routing** and **token rules** on top of it.
+At session start, read `${CLAUDE_SKILL_DIR}/team-mode.md` and follow it for the board (`TASKS.md`), script setup, the worker preamble, locks and review. This file adds **routing** and **token rules** on top of it.
 
 **Stays on.** Once started, this mode covers every task for the rest of the session, including problems the user reports later, until the user says to stop.
 
@@ -15,7 +15,10 @@ At session start, read `team-mode.md` in this skill's folder (`~/.claude/skills/
 1. Advisor setup (§1).
 2. `agy models` ids (§2).
 3. Antigravity skill names (§1b).
-4. `TASKS.md` and the `.agy/` scripts (`team-mode.md` §1 and §3).
+4. `TASKS.md` (`team-mode.md` §1) and the scripts. Copy them in every session (cheap, picks up skill updates, keeps the runtime files in `.agy/`) and git-ignore `.agy/`:
+   ```bash
+   mkdir -p .agy && cp "${CLAUDE_SKILL_DIR}/agy/"* .agy/ && chmod +x .agy/*.sh
+   ```
 
 Tell the user in one line what each step found. If a step fails (no `agy`, no skills folder), say which and carry on with the lanes that still work.
 

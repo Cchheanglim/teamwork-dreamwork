@@ -1,5 +1,5 @@
 # Live chat view of the Claude <-> Antigravity conversation (cross-platform port of watch.ps1).
-# Usage (from a project folder):  python3 watch.py [--history] [--log PATH]
+# Usage (from a project folder):  python3 .agy/watch.py [--history] [--log PATH]
 #   --history   replay everything already in the log before following new messages
 #   --log PATH  log file to follow (default .agy/live.log)
 import argparse
