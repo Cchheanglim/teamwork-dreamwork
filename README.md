@@ -109,7 +109,9 @@ On older Claude Code versions, add the marketplace first: `/plugin marketplace a
 
 ### As a skill
 
-Copy the skill folder into `~/.claude/skills/`. The command is `/teamwork-dreamwork`.
+Download `teamwork-dreamwork-skill-v<version>.zip` from the latest **Skill** release on the [Releases page](https://github.com/Cchheanglim/teamwork-dreamwork/releases) and unzip it into `~/.claude/skills/`, so you end up with `~/.claude/skills/teamwork-dreamwork/SKILL.md`. The command is `/teamwork-dreamwork`. To update, unzip a newer Skill release over it.
+
+Or copy it from a clone, which always has the latest code:
 
 macOS / Linux / Git Bash:
 ```bash
