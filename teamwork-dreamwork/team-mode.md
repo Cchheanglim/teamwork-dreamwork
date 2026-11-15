@@ -64,7 +64,7 @@ The scripts run on macOS, Linux and Windows (Git Bash). `.agy/py.sh` picks Pytho
 - **Never** pass `--dangerously-skip-permissions`.
 - Run one Antigravity task at a time: `run.sh` shares one lock, inbox and `last-conversation` file per project, so it refuses to start a second task while one is running. Send extra instructions for the running task with `tell.sh`.
 
-**Command policy.** By default the worker runs no shell commands. `AGY_ALLOW` lists the exact commands it may run for one task, separated by `|`: `AGY_ALLOW="npm test|npx tsc --noEmit" bash .agy/run.sh task.md`. `run.sh` passes the list to agy with `--settings`, which **replaces** the user's own agy allowlist for that task, and each rule matches the whole command line exactly: extra arguments, `;`, `&&` or `|` chains are denied.
+**Command policy.** By default the worker runs no shell commands. `AGY_ALLOW` lists the exact commands it may run for one task, separated by `|`: `AGY_ALLOW="npm test|npx tsc --noEmit" bash .agy/run.sh task.md`. `run.sh` passes the list to agy with `--settings`, which **replaces** the user's own agy allowlist for that task, and each rule matches the whole command line exactly: extra arguments, `;`, `&&` or `|` chains are denied. To see exactly what the worker may run in this project, after a `run.sh` call has written `.agy/settings.json`: `MSYS_NO_PATHCONV=1 agy -p /permissions --model gemini-3.8-flash-low --settings .agy/settings.json`. It prints one rule per line with its scope and runs no agent turn.
 
 | Kind | Examples | In `AGY_ALLOW`? |
 |---|---|---|
