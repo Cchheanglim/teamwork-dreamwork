@@ -1,6 +1,6 @@
 ---
 name: teamwork-dreamwork
-description: Token-saving team mode. Every task goes to the cheapest model and effort level that can do it right - Claude inline for tiny edits, a Haiku sub-agent for lookups, Antigravity on Gemini Flash (low/medium) for small mechanical work, Antigravity on Sonnet or Opus for bigger self-contained work, and Claude plus the built-in /advisor (Opus/Fable) only for hard or risky calls. Use when the user says "teamwork dreamwork", "team mode", "use Antigravity", "advisor team", "save tokens", "cheap mode", or wants Claude + Antigravity (+ advisor) to split work.
+description: Token-saving team mode. Every task goes to the cheapest model and effort level that can do it right - Claude inline for tiny edits, a Haiku sub-agent for lookups, Antigravity on Gemini Hydrogen (low/medium) for small mechanical work, Antigravity on Sonnet or Opus for bigger self-contained work, and Claude plus the built-in /advisor (Opus/Fable) only for hard or risky calls. Use when the user says "teamwork dreamwork", "team mode", "use Antigravity", "advisor team", "save tokens", "cheap mode", or wants Claude + Antigravity (+ advisor) to split work.
 ---
 
 # Advisor team mode
@@ -50,20 +50,20 @@ ls ~/.gemini/config/skills ~/.gemini/antigravity-cli/builtin/skills 2>/dev/null
 |---|---|---|---|
 | **Tiny** | one-line fix, rename, config value, typo | Claude, inline | Do it yourself. A hand-off costs more tokens than the edit. |
 | **Lookup** | find where X is used, read many files and summarize | Claude sub-agent, Haiku | Agent tool with `model: "haiku"`, `effort: "low"`; you get the conclusion, not the file dumps. |
-| **Small, mechanical** | tests for existing code, boilerplate, docs, copy, simple page/component, lint fixes | Antigravity, Flash | `AGY_MODEL=gemini-3.8-flash-low` for copy/docs/renames, `gemini-3.8-flash-medium` for tests and simple components |
+| **Small, mechanical** | tests for existing code, boilerplate, docs, copy, simple page/component, lint fixes | Antigravity, Hydrogen | `AGY_MODEL=gemini-4-hydrogen-low` for copy/docs/renames, `gemini-4-hydrogen-medium` for tests and simple components |
 | **Medium, self-contained** | a new module, a feature behind a clear interface, a multi-file page | Antigravity, Sonnet/Opus | `AGY_MODEL=claude-sonnet-5-5-medium` first; `claude-opus-5-5-high` (the default) when it needs real design or failed once |
 | **Hard or risky** | architecture, auth, security, data migrations, deleting things, a bug that survived 2 attempts | Claude + advisor | Consult the advisor before choosing the approach, then do it yourself. |
 
 Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the effort level is part of the model id (`-low` / `-medium` / `-high`). Write the chosen id next to the task in `TASKS.md`. When the task has tests or a type check the worker should run, add `AGY_ALLOW="<exact command>|<exact command>"` (see the command policy in `team-mode.md` §3).
 
-**Any Antigravity model works.** `AGY_MODEL` (tasks), `AGY_ASK_MODEL` (side questions) and `AGY_FALLBACK` (out-of-usage switch) take any id that `agy models` lists — Claude, Gemini, Argon, GPT-OSS or whatever the user's account has. The ids in the table above are defaults, not limits.
+**Any Antigravity model works.** `AGY_MODEL` (tasks), `AGY_ASK_MODEL` (side questions) and `AGY_FALLBACK` (out-of-usage switch) take any id that `agy models` lists — Claude, Gemini (Hydrogen, Carbon, Argon), GPT-OSS or whatever the user's account has. The ids in the table above are defaults, not limits.
 
 - **The user's choice wins.** If the user names a model or effort ("use Argon for this", "run everything on GPT-OSS", "Sonnet high for the tests"), use exactly that id for those tasks, even when the table would pick something cheaper. Mention the cost only if it is a strong model on tiny work.
-- **Check what this account has.** Once per session, at session start, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. another `-low` Flash-class model for small work), and set `AGY_FALLBACK` to a listed model if `gemini-3.8-flash-high` isn't there.
+- **Check what this account has.** Once per session, at session start, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. `gemini-3.8-flash-low`/`-medium` for small work if Hydrogen isn't listed), and set `AGY_FALLBACK=gemini-3.8-flash-high` (or another listed model) if `gemini-4-hydrogen-high` isn't there.
 
 ### Backup lane: Antigravity unavailable
 
-Use this only when Antigravity can't take the task: `run.sh` exits `75` (the model and its Flash fallback are both out of usage) or `69` (`agy` produced no result: missing, not signed in, or crashed). Then the Small and Medium lanes go to a Claude sub-agent instead of the main session:
+Use this only when Antigravity can't take the task: `run.sh` exits `75` (the model and its Hydrogen fallback are both out of usage) or `69` (`agy` produced no result: missing, not signed in, or crashed). Then the Small and Medium lanes go to a Claude sub-agent instead of the main session:
 
 | Lane | Sub-agent call |
 |---|---|
@@ -73,7 +73,7 @@ Use this only when Antigravity can't take the task: `run.sh` exits `75` (the mod
 - Give it the same prompt you would give Antigravity: worker preamble, task, files allowed, what "done" means. It may run commands, so also tell it to run the relevant tests and never commit, push or delete files.
 - Lock its files as `[CLAUDE-SUB]` in `TASKS.md` and note `backup: sonnet-low` (or `-medium`) next to the task.
 - Review its diff exactly as you would review Antigravity's. Same escalation rule: one step up (effort, then `opus`) if it fails review.
-- This spends Claude usage, so don't use it while Antigravity is available. Re-check Antigravity on the next task (a cheap `ask` with `AGY_ASK_MODEL=gemini-3.8-flash-low`) and switch back as soon as it works.
+- This spends Claude usage, so don't use it while Antigravity is available. Re-check Antigravity on the next task (a cheap `ask` with `AGY_ASK_MODEL=gemini-4-hydrogen-low`) and switch back as soon as it works.
 - Tiny, Lookup and Hard lanes are unchanged.
 
 Rules:
@@ -84,7 +84,7 @@ Rules:
 - Consult the advisor at these points only: the initial plan for a multi-task request, every hard/risky task, and after 2 failed attempts at the same problem. Never for tiny or small tasks.
 - Run Antigravity tasks with `run_in_background`, one at a time, and keep working on your own unlocked files.
 - An empty `response` with `status: SUCCESS` means the worker did nothing: check `denied_actions` before trusting it.
-- Side questions are small work: `AGY_FROM=Claude AGY_ASK_MODEL=gemini-3.8-flash-low bash .agy/ask.sh "..."`. The default ask model is Opus-high, so leave it only for questions that need deep reasoning.
+- Side questions are small work: `AGY_FROM=Claude AGY_ASK_MODEL=gemini-4-hydrogen-low bash .agy/ask.sh "..."`. The default ask model is Opus-high, so leave it only for questions that need deep reasoning.
 
 ## 3. Token rules for Claude
 
@@ -93,7 +93,7 @@ Rules:
 - **Review as deep as the risk.** Small lane: diff + run the tests. Medium lane: diff + tests + check edge cases. Hard lane: full review.
 - **Don't re-read files** you already read this session unless they changed.
 - **Notes before searching.** Read the board's **Notes** before investigating, and don't repeat a search whose answer is already there. Add one line per new finding.
-- **Batch small tasks** into one Flash hand-off when they touch different files and share context. Group related problems into packages (`team-mode.md` §2) instead of running one investigation per report.
+- **Batch small tasks** into one Hydrogen hand-off when they touch different files and share context. Group related problems into packages (`team-mode.md` §2) instead of running one investigation per report.
 - **Name what was expensive.** Claude can't see its own token count, so never invent numbers. In the report, name any step that read many files, repeated a search or needed a retry. Add the worker's `usage.total_tokens` from each `run.sh` result line. The user can check Claude's side with `/context`.
 
 ## 4. Report to the user

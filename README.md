@@ -18,7 +18,7 @@
 
 # teamwork-dreamwork
 
-A Claude Code plugin (or plain skill) for token-saving teamwork. Claude is the boss and Google Antigravity (the `agy` CLI) is the worker. Every task goes to the cheapest model and effort level that can do it: Claude inline, a Haiku sub-agent, Antigravity on Gemini Flash / Sonnet / Opus, or Claude + the built-in `/advisor` for hard work.
+A Claude Code plugin (or plain skill) for token-saving teamwork. Claude is the boss and Google Antigravity (the `agy` CLI) is the worker. Every task goes to the cheapest model and effort level that can do it: Claude inline, a Haiku sub-agent, Antigravity on Gemini Hydrogen / Sonnet / Opus, or Claude + the built-in `/advisor` for hard work.
 
 ## How it works
 
@@ -49,8 +49,8 @@ The plugin is one skill, in `skills/teamwork-dreamwork/` (paths below are relati
 | Variable | Used by | Default | What it sets |
 |---|---|---|---|
 | `AGY_MODEL` | `run.sh` | `claude-opus-5-5-high` | Worker model **and** effort (`-low` / `-medium` / `-high`). See `agy models`. |
-| `AGY_ASK_MODEL` | `ask.sh` | `claude-opus-5-5-high` | Model for side questions. Claude uses `gemini-3.8-flash-low` for quick status checks. |
-| `AGY_FALLBACK` | `run.sh`, `ask.sh` | `gemini-3.8-flash-high` | Model to switch to once when the chosen one is out of usage. |
+| `AGY_ASK_MODEL` | `ask.sh` | `claude-opus-5-5-high` | Model for side questions. Claude uses `gemini-4-hydrogen-low` for quick status checks. |
+| `AGY_FALLBACK` | `run.sh`, `ask.sh` | `gemini-4-hydrogen-high` | Model to switch to once when the chosen one is out of usage. |
 | `AGY_MODE` | `run.sh` | `accept-edits` | `agy --mode`. Use `plan` for read-only tasks like reviews. |
 | `AGY_ALLOW` | `run.sh` | none | Exact shell commands the worker may run, separated by `\|`, e.g. `npm test\|npx tsc --noEmit`. Replaces your own agy allowlist for the task; extra arguments and chained commands are denied. |
 | `AGY_FROM` | all scripts | `Claude` (run.sh) / `You` | Name shown in the watcher. |
@@ -58,7 +58,7 @@ The plugin is one skill, in `skills/teamwork-dreamwork/` (paths below are relati
 
 If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBACK` once.
 
-**Any model works.** These variables take any id from `agy models`: Claude, Gemini, Argon, GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has.
+**Any model works.** These variables take any id from `agy models`: Claude, Gemini (Hydrogen, Carbon, Argon), GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has.
 
 `run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed) or Python 3 wasn't found, `75` out of usage. On `69` or `75`, Claude uses the backup lane.
 
@@ -152,11 +152,11 @@ For any multi-part development task, use the teamwork-dreamwork skill and follow
 |---|---|---|---|
 | **Tiny** | one-line fix, rename, config value, typo | Claude, inline | Claude does it directly. A hand-off costs more tokens than the edit. |
 | **Lookup** | find where X is used, read many files and summarize | Claude sub-agent, Haiku | Agent tool with `model: "haiku"`, `effort: "low"`; returns conclusion only. |
-| **Small, mechanical** | tests for existing code, boilerplate, docs, copy, simple page/component, lint fixes | Antigravity, Flash | `AGY_MODEL=gemini-3.8-flash-low` for copy/docs/renames, `gemini-3.8-flash-medium` for tests and components. |
+| **Small, mechanical** | tests for existing code, boilerplate, docs, copy, simple page/component, lint fixes | Antigravity, Hydrogen | `AGY_MODEL=gemini-4-hydrogen-low` for copy/docs/renames, `gemini-4-hydrogen-medium` for tests and components. |
 | **Medium, self-contained** | a new module, a feature behind a clear interface, a multi-file page | Antigravity, Sonnet/Opus | `AGY_MODEL=claude-sonnet-5-5-medium` first; `claude-opus-5-5-high` when design-heavy or retrying. |
 | **Hard or risky** | architecture, auth, security, data migrations, deleting things, a bug that survived 2 fix attempts | Claude + advisor | Claude consults the advisor before choosing the approach, then does it itself. |
 
-**Backup lane:** if Antigravity is out of usage (including its Flash fallback) or `agy` isn't available (`run.sh` exit `75` or `69`), Small and Medium tasks go to a Claude Sonnet sub-agent at low or medium effort instead of the main session. Claude reviews its work the same way and switches back to Antigravity as soon as it works again.
+**Backup lane:** if Antigravity is out of usage (including its Hydrogen fallback) or `agy` isn't available (`run.sh` exit `75` or `69`), Small and Medium tasks go to a Claude Sonnet sub-agent at low or medium effort instead of the main session. Claude reviews its work the same way and switches back to Antigravity as soon as it works again.
 
 ## Safety Notes
 

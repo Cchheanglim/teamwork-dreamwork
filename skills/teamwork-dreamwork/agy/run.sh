@@ -4,7 +4,7 @@
 # Env:   AGY_FROM  who is asking, shown in the watcher (default: Claude)
 #        AGY_MODE  agy --mode (default: accept-edits; headless denies writes otherwise)
 #        AGY_MODEL    agy --model, any id from `agy models` (default: claude-opus-5-5-high)
-#        AGY_FALLBACK model to switch to once when AGY_MODEL is out of usage (default: gemini-3.8-flash-high)
+#        AGY_FALLBACK model to switch to once when AGY_MODEL is out of usage (default: gemini-4-hydrogen-high)
 #        AGY_ALLOW    exact shell commands the worker may run, separated by | (default: none)
 #        AGY_PYTHON   Python 3 to use (default: first working of python3, python, py)
 # Exit: 0 done, 1 another task is running, 69 agy unavailable (no result) or Python 3 not found, 75 out of usage.
@@ -16,7 +16,7 @@ PROMPT_FILE="$1"; CONV="$2"
 FROM="${AGY_FROM:-Claude}"
 MODE="${AGY_MODE:-accept-edits}"
 PRIMARY="${AGY_MODEL:-claude-opus-5-5-high}"
-FALLBACK="${AGY_FALLBACK:-gemini-3.8-flash-high}"
+FALLBACK="${AGY_FALLBACK:-gemini-4-hydrogen-high}"
 INBOX=.agy/inbox.jsonl
 
 # One task at a time: the lock, inbox and last-conversation files are shared per project.
