@@ -58,7 +58,7 @@ The plugin is one skill, in `skills/teamwork-dreamwork/` (paths below are relati
 
 If the chosen model is out of usage, `run.sh` and `ask.sh` switch to `AGY_FALLBACK` once.
 
-**Any model works.** These variables take any id from `agy models`: Claude, Gemini (Hydrogen, Carbon, Argon), GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has.
+**Any model works.** These variables take any id from `agy models`: Claude, Gemini (Hydrogen, Carbon, Argon), GPT-OSS, or whatever your account has. The routing table only picks defaults. Ask for a model by name ("use Argon for this", "run everything on GPT-OSS") and Claude uses it. Claude also checks `agy models` once per session and swaps a default for the closest model your account actually has. When a model appears that wasn't there last session, Claude looks up its release notes, tries it on the next task in the lane it fits, and records the result in `.agy/models.md`. A model that passes review becomes that lane's default in this project; one that fails is skipped.
 
 `run.sh` exit codes: `0` done, `1` another task is already running, `69` `agy` produced no result (missing, not signed in, or crashed) or Python 3 wasn't found, `75` out of usage. On `69` or `75`, Claude uses the backup lane.
 

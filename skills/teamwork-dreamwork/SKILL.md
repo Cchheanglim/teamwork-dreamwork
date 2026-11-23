@@ -13,7 +13,7 @@ At session start, read `${CLAUDE_SKILL_DIR}/team-mode.md` and follow it for the 
 
 **Session start checklist**, before the first task (even one you keep yourself):
 1. Advisor setup (§1).
-2. `agy models` ids (§2).
+2. `agy models` ids (§2), and any model new since last session (§2b).
 3. Antigravity skill names (§1b).
 4. `TASKS.md` (`team-mode.md` §1) and the scripts. Copy them in every session (cheap, picks up skill updates, keeps the runtime files in `.agy/`) and git-ignore `.agy/`:
    ```bash
@@ -60,6 +60,23 @@ Command: `AGY_MODEL=<id> bash .agy/run.sh <prompt-file>`. In Antigravity the eff
 
 - **The user's choice wins.** If the user names a model or effort ("use Argon for this", "run everything on GPT-OSS", "Sonnet high for the tests"), use exactly that id for those tasks, even when the table would pick something cheaper. Mention the cost only if it is a strong model on tiny work.
 - **Check what this account has.** Once per session, at session start, run `agy models` (ids only). Model lists differ between accounts and change over time. If a default id from the table isn't listed, use the closest listed model at the same tier (e.g. `gemini-3.8-flash-low`/`-medium` for small work if Hydrogen isn't listed), and set `AGY_FALLBACK=gemini-3.8-flash-high` (or another listed model) if `gemini-4-hydrogen-high` isn't there.
+
+### 2b. New models: find out if they're good for this project
+
+Your training doesn't cover models released after it, so `agy models` is the only way you learn a new one exists, and it says nothing about quality. Keep a per-project ledger in `.agy/models.md` (the copy step never overwrites it), one line per id:
+
+```
+<id> · <status> · <lane> · <evidence>
+```
+
+Status is `known` (was there before tracking, not judged), `new` (looked up, waiting for a trial), `good` (use it in its lane), or `bad` (skip it).
+
+- **First session in a project** (no ledger): write every listed id as `known`. Don't research them.
+- **Every session:** compare `agy models` with the ledger. For each id not in it, web-search the official release notes once: what it's for, benchmarks, context size, price or usage limits next to the model its lane uses now. Pick the lane it might replace, write it as `new` with a one-line summary, and tell the user ("new: `<id>`, looks like a cheaper Small-lane model, will trial it on the next Small task").
+- **Trial on real work.** The next task in that lane goes to the `new` model instead of the table default. Review it as usual. Then mark it `good` or `bad` with the evidence: task type, passed review first try or not, `usage.total_tokens` against what the old model usually takes. One trial decides; a `bad` model gets at most one more trial, and only if the first failure looked like bad luck (flaky test, unclear prompt).
+- **Routing reads the ledger first.** A `good` model replaces the table default for its lane and task type in this project; a `bad` one is never picked by default. The user's choice still wins over both.
+- Trust your review over benchmarks when they disagree.
+- Never trial a new model on a Hard-lane task, and never trial more than one new model per task.
 
 ### Backup lane: Antigravity unavailable
 
